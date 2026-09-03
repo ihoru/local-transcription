@@ -1,0 +1,8 @@
+{
+  "skill_name": "local-transcription",
+  "evals": [
+    {"id": 1, "prompt": "Transcribe this local video, create raw and proofread TXT/SRT with speaker labels, and do not create a summary.", "expected_output": "Extracted audio and four transcript files; local inference; no summary.", "files": []},
+    {"id": 2, "prompt": "Transcribe this audio and proofread both output formats. Disable speaker detection. Yes, include a practical summary.", "expected_output": "Four transcript files without speaker labels and a summary based on the full dialogue.", "files": []},
+    {"id": 3, "prompt": "Transcribe this recording locally and proofread the TXT and SRT.", "expected_output": "Four transcript files, followed by a summary question; no summary without an answer.", "files": []}
+  ]
+}
