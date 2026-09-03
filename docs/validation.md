@@ -12,6 +12,10 @@ Ruff checks and skill frontmatter validation pass. A clean locked environment ex
 
 A final smoke run used the installed repository environment and default model cache, transcribed the full synthetic audio with diarization disabled, reviewed the complete text, and successfully produced all four outputs. The clean installation therefore exercised actual recognition and review, not only imports or mocked tests.
 
+## Packaged installation
+
+The release wheel was installed into a fresh uv tool environment with runtime constraints exported from the lockfile, without an editable install or source checkout on the import path. From outside the repository, its doctor verified the default models and native dependencies, and the CLI completed recognition and review of the full synthetic audio, producing all four files. The standalone skill archive passed validation and every referenced guide was present. Release checksums cover the wheel, constraints, and skill archive. CI also builds and installs the wheel.
+
 ## Skill workflow evaluations
 
 The following three requests were each executed with the skill and with a baseline agent using CLI documentation:

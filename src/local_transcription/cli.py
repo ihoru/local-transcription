@@ -73,7 +73,7 @@ def doctor(args):
     try:
         import sherpa_onnx  # noqa: F401
     except (ImportError, OSError) as exc:
-        errors.append(f"Speaker runtime cannot load: {exc}. Run uv sync --locked.")
+        errors.append(f"Speaker runtime cannot load: {exc}. Reinstall the CLI with its locked dependencies.")
     try:
         gpu_count = ctranslate2.get_cuda_device_count()
     except RuntimeError:

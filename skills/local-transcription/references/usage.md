@@ -1,6 +1,6 @@
 # CLI usage and troubleshooting
 
-Run commands from this checkout with `uv run --locked local-transcription`, or from anywhere with `uv run --locked --project /absolute/repo/path local-transcription`. `uv sync --locked` installs the console entry point into the repository environment. The CLI itself is usable without an agent; the skill supplies the editorial pass.
+After release installation, run `local-transcription` directly. For development, run commands from a checkout with `uv run --locked local-transcription`, or from anywhere with `uv run --locked --project /absolute/repo/path local-transcription`. `uv sync --locked` installs the console entry point into the repository environment. The CLI itself is usable without an agent; the skill supplies the editorial pass.
 
 ## Media and output selection
 
