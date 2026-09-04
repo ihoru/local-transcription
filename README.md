@@ -65,16 +65,13 @@ Text remains in the spoken language. Speaker labels and tooling are in English. 
 
 ## Install the skill
 
-The release archive `local-transcription-skill.zip` contains the skill and all its reference documents. Extract it into `~/.agents/skills/` after checksum verification. Inspect any existing `local-transcription` destination before replacing it.
+Copy this prompt into your AI coding agent:
 
-For development, keep the canonical skill in this repository and install an absolute symlink from the checkout:
-
-```bash
-mkdir -p ~/.agents/skills
-ln -s "$(pwd)/skills/local-transcription" ~/.agents/skills/local-transcription
+```text
+Install the local-transcription skill for my coding agent by following https://github.com/ihoru/local-transcription/blob/main/skills/local-transcription/INSTALL.md
 ```
 
-Invoke the skill by name or ask the agent to transcribe a local recording with proofread subtitles. It uses an installed CLI or an existing development environment, completes all four transcript files, then asks about a summary. If the CLI is missing, the skill installs the packaged release without cloning the repository.
+See the [full skill installation guide](skills/local-transcription/INSTALL.md) for installation details, manual alternatives, and a usage example. This installs only the skill; CLI and model setup happens when you first use it.
 
 ## Documentation
 
