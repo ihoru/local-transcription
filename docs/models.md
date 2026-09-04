@@ -23,3 +23,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Packaged media tools
+
+The pinned [ffmpeg-binaries-compat 1.1.0](https://pypi.org/project/ffmpeg-binaries-compat/1.1.0/) dependency supplies FFmpeg/FFprobe executables as separate platform wheels. Its Python wrapper is MIT-licensed; FFmpeg binaries have their own license terms. The inspected Linux wheel contains FFmpeg 6.0 static binaries from John Van Sickle and includes `GPLv3.txt` and its build readme. See the [upstream package](https://github.com/MatteoH2O1999/ffmpeg-binaries) and [FFmpeg licensing information](https://ffmpeg.org/legal.html). The local-transcription distributions reference this dependency instead of repackaging its binaries. System FFmpeg takes precedence when available.

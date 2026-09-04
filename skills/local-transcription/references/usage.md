@@ -41,7 +41,7 @@ Each array entry is one distinct speaker. Intervals use seconds in the full reco
 
 ## Common problems
 
-**FFmpeg/FFprobe missing:** install the system FFmpeg package, then run `doctor` again.
+**FFmpeg/FFprobe missing:** these tools normally install with the CLI. Run `doctor` to see the selected paths. Reinstall the CLI with platform wheels enabled if the packaged files are absent. Unsupported platforms can use a system FFmpeg installation. No administrator access or PATH changes are needed for packaged tools.
 
 **Missing model assets:** use `models install`, optionally with `--from-dir`. Setting `--models-dir` on setup alone does not change the default for later commands; use the same option or set `LOCAL_TRANSCRIPTION_MODELS`.
 

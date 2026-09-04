@@ -1,5 +1,3 @@
-import subprocess
-
 import numpy as np
 import pytest
 
@@ -11,8 +9,8 @@ from local_transcription.common import new_run, read_json, seconds, validate_tra
 @pytest.fixture
 def audio(tmp_path):
     target = tmp_path / "example.wav"
-    subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "sine=frequency=400:duration=1",
-                    "-ar", "16000", str(target)], check=True)
+    media.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "sine=frequency=400:duration=1",
+                    "-ar", "16000", str(target)])
     return target
 
 
@@ -31,8 +29,8 @@ def test_audio_detection_ignores_extension_and_preserves_input(audio):
 
 def test_video_with_audio_detected_and_copied(tmp_path, audio):
     target = tmp_path / "movie.mkv"
-    subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=blue:s=32x32:d=1",
-                    "-i", str(audio), "-c:v", "ffv1", "-c:a", "flac", "-shortest", str(target)], check=True)
+    media.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=blue:s=32x32:d=1",
+                    "-i", str(audio), "-c:v", "ffv1", "-c:a", "flac", "-shortest", str(target)])
     renamed = target.with_suffix(".data")
     target.rename(renamed)
     assert media.probe(renamed)["video"]
@@ -43,15 +41,15 @@ def test_video_with_audio_detected_and_copied(tmp_path, audio):
 
 def test_video_without_audio_is_clear_error(tmp_path):
     target = tmp_path / "silent.mkv"
-    subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=blue:s=32x32:d=1",
-                    "-c:v", "ffv1", str(target)], check=True)
+    media.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=blue:s=32x32:d=1",
+                    "-c:v", "ffv1", str(target)])
     with pytest.raises(ValueError, match="no audio stream"):
         media.probe(target)
 
 
 def test_unsupported_copy_codec_falls_back_to_flac(tmp_path, audio):
     target = tmp_path / "voice.wav"
-    subprocess.run(["ffmpeg", "-v", "error", "-i", str(audio), "-c:a", "pcm_mulaw", str(target)], check=True)
+    media.run(["ffmpeg", "-v", "error", "-i", str(audio), "-c:a", "pcm_mulaw", str(target)])
     converted, _ = media.convert(target)
     assert converted.suffix == ".flac" and media.probe(converted)["codec"] == "flac"
 
@@ -111,3 +109,54 @@ def test_seconds_accepts_timestamps_and_rejects_nonfinite():
     for value in ("nan", "inf", "-1", "1:2:3:4"):
         with pytest.raises(ValueError):
             seconds(value)
+
+
+@pytest.mark.parametrize('name', ['ffmpeg', 'ffprobe'])
+def test_system_media_tool_takes_precedence(name, monkeypatch):
+    monkeypatch.setattr(media.shutil, 'which', lambda requested: '/system/' + requested)
+    monkeypatch.setattr(media, '_bundled_paths', lambda: pytest.fail('System tool was ignored'))
+    assert media.executable(name) == '/system/' + name
+
+
+def test_packaged_tools_handle_video_and_doctor_with_empty_path(tmp_path, monkeypatch, capsys):
+    import json
+    import requests
+    import soundfile as sf
+
+    monkeypatch.setenv('PATH', '')
+    monkeypatch.setattr(requests.sessions.Session, 'request',
+                        lambda *a, **k: pytest.fail('Media processing tried to download a binary'))
+    assert media.shutil.which('ffmpeg') is None
+    assert media.shutil.which('ffprobe') is None
+    assert 'ffmpeg_binaries' in media.executable('ffmpeg')
+    assert 'ffmpeg_binaries' in media.executable('ffprobe')
+    video = tmp_path / 'video.mkv'
+    media.run(['ffmpeg', '-nostdin', '-v', 'error', '-f', 'lavfi', '-i',
+               'color=blue:s=32x32:d=1', '-f', 'lavfi', '-i',
+               'sine=frequency=400:duration=1', '-c:v', 'ffv1', '-c:a', 'flac',
+               '-shortest', str(video)])
+    disguised = video.with_name('Запись без расширения')
+    video.rename(disguised)
+    original = disguised.read_bytes()
+    info = media.probe(disguised)
+    assert info['video'] and info['codec'] == 'flac'
+    extracted, _ = media.convert(disguised)
+    assert media.probe(extracted)['codec'] == 'flac'
+    decoded = tmp_path / 'decoded.wav'
+    media.decode(disguised, decoded, info['audio_stream'])
+    assert sf.info(decoded).samplerate == 16000
+    assert sf.info(decoded).channels == 1
+    assert disguised.read_bytes() == original
+    monkeypatch.setattr(pipeline.models, 'check', lambda *a, **k: [])
+    assert main(['doctor']) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report['ffmpeg'] == media.executable('ffmpeg')
+    assert report['ffprobe'] == media.executable('ffprobe')
+    assert report['errors'] == []
+
+
+def test_missing_packaged_binary_has_actionable_error(monkeypatch):
+    monkeypatch.setattr(media.shutil, 'which', lambda name: None)
+    monkeypatch.setattr(media, '_bundled_paths', lambda: (None, None))
+    with pytest.raises(ValueError, match='platform wheels'):
+        media.executable('ffmpeg')

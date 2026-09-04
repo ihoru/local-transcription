@@ -4,7 +4,7 @@ Validated on 2026-09-04 on Linux, Python 3.13, CPU int8 recognition. No usable C
 
 ## Automated checks
 
-31 tests pass. They cover content-based media detection with misleading extensions and Unicode paths, video extraction, audio-only input, missing audio, FLAC fallback, output collisions, disabled diarization, stable speaker numbering, competing voice assignments, local model loading, verified model import, and native runtime availability.
+35 tests pass. They cover content-based media detection with misleading extensions and Unicode paths, video extraction, audio-only input, missing audio, FLAC fallback, output collisions, disabled diarization, stable speaker numbering, competing voice assignments, local model loading, verified model import, and native runtime availability.
 
 Review tests exercise repeated phrases, edits spanning subtitle boundaries, missing negations, substantive replacements, empty reviewed edits, invalid or overlapping edits, stale canonical hashes, original-file preservation, unknown-speaker sentence continuity, and protection of real replies. Saved TXT/SRT speech is compared independently of layout; edited cues are checked for balanced braces.
 
@@ -15,6 +15,10 @@ A final smoke run used the installed repository environment and default model ca
 ## Packaged installation
 
 The release wheel was installed into a fresh uv tool environment with runtime constraints exported from the lockfile, without an editable install or source checkout on the import path. From outside the repository, its doctor verified the default models and native dependencies, and the CLI completed recognition and review of the full synthetic audio, producing all four files. The standalone skill archive passed validation and every referenced guide was present. Release checksums cover the wheel, constraints, and skill archive. CI also builds and installs the wheel.
+
+## Packaged FFmpeg validation (0.1.2)
+
+With PATH empty and network requests rejected by the test, the actual dependency binaries successfully generated and probed a video, detected its format after a Unicode rename without an extension, extracted its audio, decoded mono 16 kHz PCM, and passed the CLI doctor. The source recording remained unchanged. Separate tests verify system-tool precedence and an actionable error for unsupported or incomplete installations. CI no longer installs FFmpeg with the system package manager. Linux x86-64 is verified; other upstream wheel platforms are documented but have not been exercised locally.
 
 ## Skill workflow evaluations
 

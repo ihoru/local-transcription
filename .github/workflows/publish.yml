@@ -28,7 +28,6 @@ jobs:
           if tag and tag != f"v{version}":
               raise SystemExit(f"Release tag {tag} does not match package version {version}")
           PYTHON
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: uv sync --locked
       - run: uv run --locked ruff check .
       - run: uv run --locked pytest

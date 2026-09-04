@@ -1,26 +1,49 @@
 """Probe content rather than trusting file extensions; never invoke a shell."""
 
+from functools import lru_cache
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
 
 
 def run(command):
+    if command[0] in ("ffmpeg", "ffprobe"):
+        command = [executable(command[0]), *command[1:]]
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode:
         raise ValueError(result.stderr.strip()[-3000:] or f"{command[0]} failed.")
     return result.stdout
 
 
-def require_ffmpeg():
-    for name in ("ffmpeg", "ffprobe"):
-        if not shutil.which(name):
-            raise ValueError(f"Missing {name}. Install FFmpeg using your system package manager.")
+@lru_cache(maxsize=1)
+def _bundled_paths():
+    from ffmpeg_binaries.executable import get_executable_path
+    # Platform wheels already contain the tools. Never download during processing.
+    return get_executable_path(ensure_binaries=False)
+
+
+def executable(name):
+    if name not in ("ffmpeg", "ffprobe"):
+        raise ValueError(f"Unknown media executable: {name}")
+    system = shutil.which(name)
+    if system:
+        return str(Path(system).resolve())
+    try:
+        path = _bundled_paths()[0 if name == "ffmpeg" else 1]
+    except (ImportError, OSError, RuntimeError) as exc:
+        raise ValueError(f"Cannot load packaged {name}: {exc}") from exc
+    if path is None or not Path(path).is_file() or not os.access(path, os.X_OK):
+        raise ValueError(
+            f"No usable {name} is installed or bundled for this platform. "
+            "Reinstall local-transcription with platform wheels enabled; "
+            "on an unsupported platform, provide system FFmpeg."
+        )
+    return str(Path(path).resolve())
 
 
 def probe(path, audio_stream=None):
-    require_ffmpeg()
     path = Path(path).expanduser().resolve()
     if not path.is_file():
         raise ValueError(f"Input is not a file: {path}")

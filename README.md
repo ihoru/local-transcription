@@ -6,18 +6,18 @@ The CLI runs the media and speech models locally. The invoking agent reads the r
 
 ## Setup
 
-Requires Python 3.11+, [uv](https://docs.astral.sh/uv/), and FFmpeg/FFprobe. The locked environment is tested on Linux with Python 3.13; the default is CPU int8 inference. Allow approximately 4 GB for models plus the Python environment and working audio. Long recordings can take substantial CPU time.
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). FFmpeg and FFprobe are installed automatically as a Python dependency on supported platforms. The locked environment is tested on Linux with Python 3.13; the default is CPU int8 inference. Allow approximately 4 GB for models plus the Python environment and working audio. Long recordings can take substantial CPU time.
 
 Install the CLI from PyPI without cloning the repository:
 
 ```bash
-uv tool install --python 3.13 local-transcription==0.1.1
+uv tool install --python 3.13 local-transcription==0.1.2
 uv tool update-shell
 local-transcription models install
 local-transcription doctor --verify
 ```
 
-If your current shell cannot find the command yet, reopen it or use the executable inside the directory printed by `uv tool dir --bin`. Python dependencies are installed automatically; system FFmpeg/FFprobe and model weights are separate. The package provides an executable CLI command, not a standalone native binary.
+If your current shell cannot find the command yet, reopen it or use the executable inside the directory printed by `uv tool dir --bin`. Python dependencies include ready-to-run FFmpeg and FFprobe binaries. The CLI prefers existing system tools and otherwise uses the packaged binaries without changing PATH or requiring administrator access. Model weights are installed separately. The package provides an executable CLI command, not a standalone native binary.
 
 The repository and GitHub release downloads are public. See the [installation guide](https://github.com/ihoru/local-transcription/blob/main/skills/local-transcription/references/install.md) for the portable skill archive and an alternative installation with exact runtime constraints. Standard PyPI installation resolves dependencies from package metadata; the release constraints reproduce the versions in our lockfile.
 

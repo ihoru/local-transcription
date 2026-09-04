@@ -1,6 +1,6 @@
 # Release packaging and PyPI publishing
 
-All maintained source code and the canonical skill live in this repository. End users install the CLI from PyPI or public GitHub release assets, so they do not need a checkout. FFmpeg and model weights are installed separately. PyPI installs dependencies according to package metadata; the release runtime constraints reproduce versions exported from `uv.lock`.
+All maintained source code and the canonical skill live in this repository. End users install the CLI from PyPI or public GitHub release assets, so they do not need a checkout. FFmpeg and FFprobe are supplied by a platform-wheel dependency; model weights are installed separately. PyPI installs dependencies according to package metadata; the release runtime constraints reproduce versions exported from `uv.lock`.
 
 ## Build and validate
 

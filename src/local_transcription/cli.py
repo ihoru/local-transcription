@@ -3,7 +3,6 @@
 import argparse
 import json
 from pathlib import Path
-import shutil
 import sys
 
 from . import __version__, media, models, pipeline, review
@@ -67,9 +66,13 @@ def doctor(args):
     import soundfile as sf
     root = models.model_dir(args.models_dir)
     errors = models.check(root, verify=args.verify)
+    media_tools = {}
     for tool in ("ffmpeg", "ffprobe"):
-        if not shutil.which(tool):
-            errors.append(f"Missing {tool}.")
+        try:
+            media_tools[tool] = media.executable(tool)
+        except ValueError as exc:
+            media_tools[tool] = None
+            errors.append(str(exc))
     try:
         import sherpa_onnx  # noqa: F401
     except (ImportError, OSError) as exc:
@@ -78,8 +81,8 @@ def doctor(args):
         gpu_count = ctranslate2.get_cuda_device_count()
     except RuntimeError:
         gpu_count = 0
-    print(json.dumps(dict(models_dir=str(root), ffmpeg=shutil.which("ffmpeg"),
-                         ffprobe=shutil.which("ffprobe"), cuda_devices=gpu_count,
+    print(json.dumps(dict(models_dir=str(root), ffmpeg=media_tools["ffmpeg"],
+                         ffprobe=media_tools["ffprobe"], cuda_devices=gpu_count,
                          default_device="cpu", soundfile_version=sf.__version__, errors=errors), indent=2))
     return 1 if errors else 0
 
