@@ -21,6 +21,8 @@ dependencies = [
   "ffmpeg-binaries-compat==1.1.0; sys_platform != 'darwin'",
   "faster-whisper==1.2.1",
   "ctranslate2==4.8.2",
+  "onnxruntime==1.23.2; sys_platform == 'darwin'",
+  "onnxruntime==1.29.0; sys_platform != 'darwin'",
   "sherpa-onnx==1.13.7",
   "sherpa-onnx-core==1.13.7",
   "soundfile>=0.13,<0.14",
