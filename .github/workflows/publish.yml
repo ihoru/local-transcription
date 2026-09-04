@@ -1,0 +1,57 @@
+name: Publish to PyPI
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+permissions:
+  contents: read
+concurrency:
+  group: pypi-publish
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.event_name == 'release' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - name: Check release tag matches the package version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PYTHON'
+          import os, pathlib, tomllib
+          version = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"]
+          tag = os.environ["RELEASE_TAG"]
+          if tag and tag != f"v{version}":
+              raise SystemExit(f"Release tag {tag} does not match package version {version}")
+          PYTHON
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: uv sync --locked
+      - run: uv run --locked ruff check .
+      - run: uv run --locked pytest
+      - run: uv build --wheel --sdist --out-dir dist/pypi
+      - run: uvx --from twine==7.0.0 twine check --strict dist/pypi/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pypi-distributions
+          path: |
+            dist/pypi/*.whl
+            dist/pypi/*.tar.gz
+          if-no-files-found: error
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/local-transcription
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: pypi-distributions
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1

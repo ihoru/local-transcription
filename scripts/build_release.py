@@ -11,7 +11,7 @@ def build(output):
     root = Path(__file__).resolve().parents[1]
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
-    subprocess.run(["uv", "build", "--wheel", "--out-dir", str(output)], cwd=root, check=True)
+    subprocess.run(["uv", "build", "--wheel", "--sdist", "--out-dir", str(output)], cwd=root, check=True)
     subprocess.run([
         "uv", "export", "--locked", "--no-dev", "--no-emit-project", "--no-hashes",
         "--no-header", "--no-annotate", "--output-file", str(output / "runtime-constraints.txt"),
@@ -21,7 +21,7 @@ def build(output):
         # Explicit documentation allowlist keeps local recordings/caches out of releases.
         for path in [skill / "SKILL.md", *sorted((skill / "references").glob("*.md"))]:
             archive.write(path, Path(skill.name) / path.relative_to(skill))
-    assets = [*output.glob("*.whl"), output / "runtime-constraints.txt",
+    assets = [*output.glob("*.whl"), *output.glob("*.tar.gz"), output / "runtime-constraints.txt",
               output / "local-transcription-skill.zip"]
     with (output / "SHA256SUMS").open("w") as checksums:
         for path in sorted(assets):

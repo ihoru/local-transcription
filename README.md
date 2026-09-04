@@ -8,22 +8,18 @@ The CLI runs the media and speech models locally. The invoking agent reads the r
 
 Requires Python 3.11+, [uv](https://docs.astral.sh/uv/), and FFmpeg/FFprobe. The locked environment is tested on Linux with Python 3.13; the default is CPU int8 inference. Allow approximately 4 GB for models plus the Python environment and working audio. Long recordings can take substantial CPU time.
 
-A repository checkout is optional. Download the packaged release into a new empty directory and install its CLI with the locked runtime constraints:
+Install the CLI from PyPI without cloning the repository:
 
 ```bash
-gh release download v0.1.0 --repo ihoru/local-transcription \
-  --pattern 'local_transcription-0.1.0-*.whl' \
-  --pattern 'runtime-constraints.txt' \
-  --pattern 'local-transcription-skill.zip' --pattern 'SHA256SUMS'
-sha256sum --check SHA256SUMS
-uv tool install --python 3.13 --constraints runtime-constraints.txt \
-  ./local_transcription-0.1.0-py3-none-any.whl
+uv tool install --python 3.13 local-transcription==0.1.1
 uv tool update-shell
 local-transcription models install
 local-transcription doctor --verify
 ```
 
-The repository and releases are private: another user needs GitHub access before downloading. The wheel installs the Python CLI and dependencies, without tests or Git history. It requires Python and FFmpeg; it is not a standalone native binary. See the [installation guide](skills/local-transcription/references/install.md) for shell setup and skill installation.
+If your current shell cannot find the command yet, reopen it or use the executable inside the directory printed by `uv tool dir --bin`. Python dependencies are installed automatically; system FFmpeg/FFprobe and model weights are separate. The package provides an executable CLI command, not a standalone native binary.
+
+The repository and GitHub release downloads are public. See the [installation guide](https://github.com/ihoru/local-transcription/blob/main/skills/local-transcription/references/install.md) for the portable skill archive and an alternative installation with exact runtime constraints. Standard PyPI installation resolves dependencies from package metadata; the release constraints reproduce the versions in our lockfile.
 
 To reuse an existing model directory instead of downloading the same weights:
 
@@ -82,11 +78,11 @@ Invoke the skill by name or ask the agent to transcribe a local recording with p
 
 ## Documentation
 
-- [CLI and troubleshooting](skills/local-transcription/references/usage.md)
-- [Architecture and offline boundary](docs/architecture.md)
-- [Review schema and editorial policy](skills/local-transcription/references/proofreading.md)
-- [Model sources and third-party notices](docs/models.md)
-- [Validation and observed limitations](docs/validation.md)
+- [CLI and troubleshooting](https://github.com/ihoru/local-transcription/blob/main/skills/local-transcription/references/usage.md)
+- [Architecture and offline boundary](https://github.com/ihoru/local-transcription/blob/main/docs/architecture.md)
+- [Review schema and editorial policy](https://github.com/ihoru/local-transcription/blob/main/skills/local-transcription/references/proofreading.md)
+- [Model sources and third-party notices](https://github.com/ihoru/local-transcription/blob/main/docs/models.md)
+- [Validation and observed limitations](https://github.com/ihoru/local-transcription/blob/main/docs/validation.md)
 
 ## Development
 
@@ -98,6 +94,6 @@ uv run --locked pytest
 uv run --locked ruff check .
 ```
 
-Run the development CLI with `uv run --locked local-transcription`. See [release packaging](docs/releases.md) to build the installable wheel and portable skill.
+Run the development CLI with `uv run --locked local-transcription`. See [release packaging](https://github.com/ihoru/local-transcription/blob/main/docs/releases.md) to build the installable wheel and portable skill.
 
-CI runs deterministic tests with synthetic media. Real speech evaluations run locally; personal recordings, transcripts, and model weights are excluded from the repository. This private repository does not grant a public license to the project code. Third-party components retain their own licenses.
+CI runs deterministic tests with synthetic media. Real speech evaluations run locally; personal recordings, transcripts, and model weights are excluded from the repository. No open-source license has been selected for the project code. Third-party components retain their own licenses.
