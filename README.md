@@ -11,7 +11,7 @@ Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). FFmpeg and FFprobe i
 Install the CLI from PyPI without cloning the repository:
 
 ```bash
-uv tool install --python 3.13 local-transcription==0.1.3
+uv tool install --python 3.13 local-transcription==0.1.4
 uv tool update-shell
 local-transcription models install
 local-transcription doctor --verify

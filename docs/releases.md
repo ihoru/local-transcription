@@ -39,7 +39,7 @@ Update `pyproject.toml`, `src/local_transcription/__init__.py`, and the version 
 
 Never replace existing published distribution files. Make a new version for corrections. GitHub hosts the skill archive and optional exact-runtime constraints alongside the Python distributions; download and verify the release checksums after upload. A public repository does not by itself select an open-source license for the code.
 
-## Native macOS packages (0.1.3+)
+## Native macOS packages (0.1.4+)
 
 The reusable `package-checks.yml` workflow builds and tests wheels on Linux, native Apple Silicon (`macos-15`), and Intel (`macos-15-intel`). macOS wheels are tagged by architecture and target macOS 13.0. The Hatch wheel hook builds FFmpeg from verified source using Apple's compiler; no Homebrew libraries enter the binaries. Build output is cached by runner and recipe hash. Source distributions include the hook and recipe so source installation can rebuild the same tools.
 
@@ -48,3 +48,5 @@ Both normal CI and PyPI publication use this workflow. Publication waits for all
 For GitHub release assets, collect all three wheels from the successful workflow artifacts and the Linux source archive, constraints, and skill ZIP. Regenerate a single `SHA256SUMS` covering the combined assets. All three wheels must belong to the same source commit. Do not upload the individual jobs' partial checksum files as the combined release checksum.
 
 macOS pins ONNX Runtime 1.23.2, which provides both arm64 and x86_64 wheels for macOS 13+. Newer releases dropped Intel wheels and raised the Apple Silicon deployment target. Linux/Windows retain ONNX Runtime 1.29.0.
+
+Before creating a release, run `gh workflow run checks.yml --repo ihoru/local-transcription --ref main -f speech=true` and wait for success to exercise clean model setup and real speech on both Macs without publishing. The 0.1.3 GitHub candidate was not published to PyPI: this gate found an incorrect WeSpeaker asset URL that cached local models had hidden. Version 0.1.4 repairs the URL while preserving the exact model checksum.

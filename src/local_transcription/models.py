@@ -13,7 +13,7 @@ WHISPER_URL = f"https://huggingface.co/Systran/faster-whisper-large-v3/resolve/{
 SEGMENT_URL = ("https://github.com/k2-fsa/sherpa-onnx/releases/download/"
                "speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2")
 EMBEDDING_URL = ("https://github.com/k2-fsa/sherpa-onnx/releases/download/"
-                 "speaker-recongition-models/wespeaker-voxceleb-resnet34.onnx")
+                 "speaker-recongition-models/wespeaker_en_voxceleb_resnet34_LM.onnx")
 WHISPER_HASHES = {
     "model.bin": "69f74147e3334731bc3a76048724833325d2ec74642fb52620eda87352e3d4f1",
     "config.json": "a9306624f5ec14270a014b647e5c316b6e03a662c369758d1b90697a7b0655b9",

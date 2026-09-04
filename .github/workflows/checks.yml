@@ -1,7 +1,17 @@
 name: Checks
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      speech:
+        description: Run clean model setup and real speech on both Macs
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
   packages:
     uses: ./.github/workflows/package-checks.yml
+    with:
+      speech: ${{ inputs.speech || false }}
