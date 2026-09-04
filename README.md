@@ -6,18 +6,18 @@ The CLI runs the media and speech models locally. The invoking agent reads the r
 
 ## Setup
 
-Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). FFmpeg and FFprobe are installed automatically as a Python dependency on supported platforms. The locked environment is tested on Linux with Python 3.13; the default is CPU int8 inference. Allow approximately 4 GB for models plus the Python environment and working audio. Long recordings can take substantial CPU time.
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). FFmpeg and FFprobe install automatically: macOS wheels include native tools for Apple Silicon and Intel, while Linux/Windows use a binary dependency. macOS 13+ is targeted; CI tests Python 3.13 on macOS 15 (both architectures) and Linux x86-64. The default is CPU int8 inference; Apple GPU/Metal acceleration is not implemented. Allow approximately 4 GB for models plus the Python environment and working audio. Long recordings can take substantial CPU time.
 
 Install the CLI from PyPI without cloning the repository:
 
 ```bash
-uv tool install --python 3.13 local-transcription==0.1.2
+uv tool install --python 3.13 local-transcription==0.1.3
 uv tool update-shell
 local-transcription models install
 local-transcription doctor --verify
 ```
 
-If your current shell cannot find the command yet, reopen it or use the executable inside the directory printed by `uv tool dir --bin`. Python dependencies include ready-to-run FFmpeg and FFprobe binaries. The CLI prefers existing system tools and otherwise uses the packaged binaries without changing PATH or requiring administrator access. Model weights are installed separately. The package provides an executable CLI command, not a standalone native binary.
+If your current shell cannot find the command yet, reopen it or use the executable inside the directory printed by `uv tool dir --bin`. The installation includes ready-to-run FFmpeg and FFprobe binaries; Mac users need neither Homebrew nor Rosetta. The CLI prefers existing system tools and otherwise uses the packaged binaries without changing PATH or requiring administrator access. Model weights are installed separately. The package provides an executable CLI command, not a standalone native binary.
 
 The repository and GitHub release downloads are public. See the [installation guide](https://github.com/ihoru/local-transcription/blob/main/skills/local-transcription/references/install.md) for the portable skill archive and an alternative installation with exact runtime constraints. Standard PyPI installation resolves dependencies from package metadata; the release constraints reproduce the versions in our lockfile.
 
@@ -93,6 +93,8 @@ uv sync --locked
 uv run --locked pytest
 uv run --locked ruff check .
 ```
+
+On macOS, a source/editable installation compiles FFmpeg during setup and requires Xcode command line tools. Normal PyPI wheel installation requires no compiler.
 
 Run the development CLI with `uv run --locked local-transcription`. See [release packaging](https://github.com/ihoru/local-transcription/blob/main/docs/releases.md) to build the installable wheel and portable skill.
 

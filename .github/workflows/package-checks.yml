@@ -1,0 +1,57 @@
+name: Build and test packages
+on:
+  workflow_call:
+    inputs:
+      speech:
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: macos-15
+            arch: arm64
+          - os: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    env:
+      EXPECTED_ARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - uses: actions/cache@v4
+        if: runner.os == 'macOS'
+        with:
+          path: build/ffmpeg-macos-*
+          key: native-ffmpeg-${{ matrix.os }}-${{ hashFiles('scripts/build_macos_ffmpeg.py') }}
+      - run: uv sync --locked --no-install-project --no-build
+      - run: python scripts/build_release.py dist/release
+      - run: uvx --from twine==7.0.0 twine check --strict dist/release/*.whl dist/release/*.tar.gz
+      - run: uv pip install --no-deps dist/release/*.whl
+      - run: uv run --no-sync ruff check .
+      - name: Test installed wheel, native tools, and speech runtimes
+        run: uv run --no-sync pytest
+      - run: uv run --no-sync local-transcription --version
+      - name: Install verified speech models for release validation
+        if: inputs.speech && runner.os == 'macOS'
+        run: uv run --no-sync local-transcription models install
+      - name: Verify models and native tools
+        if: inputs.speech && runner.os == 'macOS'
+        run: uv run --no-sync local-transcription doctor --verify
+      - name: Recognize generated speech with large-v3 and automatic diarization
+        if: inputs.speech && runner.os == 'macOS'
+        run: uv run --no-sync python tests/macos_speech.py "${RUNNER_TEMP}/speech-check"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.os }}
+          path: dist/release/*
+          if-no-files-found: error

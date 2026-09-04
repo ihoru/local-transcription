@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 
 def run(command):
@@ -19,6 +20,9 @@ def run(command):
 
 @lru_cache(maxsize=1)
 def _bundled_paths():
+    if sys.platform == "darwin":
+        folder = Path(__file__).parent / "_bin"
+        return folder / "ffmpeg", folder / "ffprobe"
     from ffmpeg_binaries.executable import get_executable_path
     # Platform wheels already contain the tools. Never download during processing.
     return get_executable_path(ensure_binaries=False)

@@ -3,17 +3,5 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-        with:
-          python-version: '3.13'
-      - run: uv sync --locked
-      - run: uv run --locked ruff check .
-      - run: uv run --locked pytest
-      - run: python scripts/build_release.py dist/release
-      - run: uvx --from twine==7.0.0 twine check --strict dist/release/*.whl dist/release/*.tar.gz
-      - run: uv tool install --python 3.13 --constraints dist/release/runtime-constraints.txt dist/release/*.whl
-      - run: '"$(uv tool dir --bin)/local-transcription" --version'
+  packages:
+    uses: ./.github/workflows/package-checks.yml

@@ -28,20 +28,13 @@ jobs:
           if tag and tag != f"v{version}":
               raise SystemExit(f"Release tag {tag} does not match package version {version}")
           PYTHON
-      - run: uv sync --locked
-      - run: uv run --locked ruff check .
-      - run: uv run --locked pytest
-      - run: uv build --wheel --sdist --out-dir dist/pypi
-      - run: uvx --from twine==7.0.0 twine check --strict dist/pypi/*
-      - uses: actions/upload-artifact@v4
-        with:
-          name: pypi-distributions
-          path: |
-            dist/pypi/*.whl
-            dist/pypi/*.tar.gz
-          if-no-files-found: error
-  publish:
+  packages:
     needs: build
+    uses: ./.github/workflows/package-checks.yml
+    with:
+      speech: true
+  publish:
+    needs: packages
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -51,6 +44,20 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: pypi-distributions
-          path: dist
+          pattern: package-*
+          path: packages
+      - name: Collect tested distributions
+        run: |
+          python - <<'PYTHON'
+          from pathlib import Path
+          import shutil
+          output = Path("dist")
+          output.mkdir()
+          wheels = list(Path("packages").glob("*/*.whl"))
+          assert len(wheels) == 3, wheels
+          for wheel in wheels:
+              shutil.copy2(wheel, output / wheel.name)
+          for sdist in Path("packages/package-ubuntu-latest").glob("*.tar.gz"):
+              shutil.copy2(sdist, output / sdist.name)
+          PYTHON
       - uses: pypa/gh-action-pypi-publish@release/v1

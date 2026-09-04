@@ -52,3 +52,7 @@ The optional `tests/manual_speech.py` checker accepts a local mono 16 kHz WAV, m
 - Speaker detection is diarization, not audio-source separation; simultaneous speech remains difficult.
 - Proofreading depends on the invoking agent reading all source text and making restrained edits. It is not performed by a local generative language model.
 - The full previous 92-minute recording was not rerun as a packaging test. The original full-run artifacts were preserved; new functionality was exercised using bounded local speech checks and synthetic workflow fixtures.
+
+## Native macOS release checks (0.1.3)
+
+The macOS binary dependency in 0.1.2 was mislabeled upstream: its universal2 wheel contained x86_64-only executables. Version 0.1.3 replaces it on macOS with native arm64 and x86_64 wheels built from pinned FFmpeg source. CI now exercises installed wheels on both native Mac architectures and Linux, including an empty-PATH media round trip, AAC/Opus decoding, Mach-O architecture and dynamic-link checks, real executable startup in doctor, CPU int8 availability, and Sherpa native imports. Before publication, both Mac jobs also run large-v3 recognition and automatic diarization on a short generated recording and produce all four transcript files. The full recording and natural-dialogue speaker-quality evaluations above remain Linux evaluations; short generated fixtures do not establish Mac transcription quality or speed on arbitrary recordings.

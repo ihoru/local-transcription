@@ -120,16 +120,15 @@ def test_system_media_tool_takes_precedence(name, monkeypatch):
 
 def test_packaged_tools_handle_video_and_doctor_with_empty_path(tmp_path, monkeypatch, capsys):
     import json
-    import requests
+    import socket
     import soundfile as sf
 
     monkeypatch.setenv('PATH', '')
-    monkeypatch.setattr(requests.sessions.Session, 'request',
+    monkeypatch.setattr(socket.socket, 'connect',
                         lambda *a, **k: pytest.fail('Media processing tried to download a binary'))
     assert media.shutil.which('ffmpeg') is None
     assert media.shutil.which('ffprobe') is None
-    assert 'ffmpeg_binaries' in media.executable('ffmpeg')
-    assert 'ffmpeg_binaries' in media.executable('ffprobe')
+    assert all(media.executable(name) for name in ('ffmpeg', 'ffprobe'))
     video = tmp_path / 'video.mkv'
     media.run(['ffmpeg', '-nostdin', '-v', 'error', '-f', 'lavfi', '-i',
                'color=blue:s=32x32:d=1', '-f', 'lavfi', '-i',
@@ -160,3 +159,29 @@ def test_missing_packaged_binary_has_actionable_error(monkeypatch):
     monkeypatch.setattr(media, '_bundled_paths', lambda: (None, None))
     with pytest.raises(ValueError, match='platform wheels'):
         media.executable('ffmpeg')
+
+
+@pytest.mark.parametrize('codec,extension', [('aac', '.m4a'), ('opus', '.opus')])
+def test_packaged_tools_decode_common_recording_codecs(tmp_path, monkeypatch, codec, extension):
+    import soundfile as sf
+    monkeypatch.setenv('PATH', '')
+    source = tmp_path / ('Voice memo' + extension)
+    media.run(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i',
+               'sine=frequency=440:duration=1', '-ar', '48000', '-c:a', codec,
+               '-strict', '-2', str(source)])
+    info = media.probe(source)
+    assert info['codec'] == codec
+    output = tmp_path / 'decoded.wav'
+    media.decode(source, output, info['audio_stream'])
+    decoded, rate = sf.read(output)
+    assert rate == 16000 and .9 < len(decoded) / rate < 1.1
+    assert np.max(np.abs(decoded)) > .01
+
+
+def test_doctor_rejects_an_executable_that_cannot_run(monkeypatch, capsys):
+    import json
+    monkeypatch.setattr(pipeline.models, 'check', lambda *a, **k: [])
+    monkeypatch.setattr(media, 'executable', lambda name: '/broken/' + name)
+    assert main(['doctor']) == 1
+    errors = json.loads(capsys.readouterr().out)['errors']
+    assert len(errors) == 2 and all('/broken/' in error for error in errors)

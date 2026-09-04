@@ -70,7 +70,8 @@ def doctor(args):
     for tool in ("ffmpeg", "ffprobe"):
         try:
             media_tools[tool] = media.executable(tool)
-        except ValueError as exc:
+            media.run([tool, "-version"])
+        except (ValueError, OSError) as exc:
             media_tools[tool] = None
             errors.append(str(exc))
     try:

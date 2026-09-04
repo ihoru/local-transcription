@@ -37,3 +37,4 @@ work/
 *.review.json
 *.edits.json
 *.transcript.json
+src/local_transcription/_bin/

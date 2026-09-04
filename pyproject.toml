@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "local-transcription"
-version = "0.1.2"
+version = "0.1.3"
 description = "Local media transcription, speaker diarization, and auditable agent proofreading."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -18,7 +18,7 @@ classifiers = [
   "Topic :: Multimedia :: Sound/Audio :: Speech",
 ]
 dependencies = [
-  "ffmpeg-binaries-compat==1.1.0",
+  "ffmpeg-binaries-compat==1.1.0; sys_platform != 'darwin'",
   "faster-whisper==1.2.1",
   "ctranslate2==4.8.2",
   "sherpa-onnx==1.13.7",
@@ -50,4 +50,6 @@ target-version = "py311"
 select = ["E4", "E7", "E9", "F"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/src/local_transcription", "/pyproject.toml", "/README.md", "/uv.lock", "/tests/*.py"]
+include = ["/src/local_transcription", "/pyproject.toml", "/README.md", "/uv.lock", "/tests/*.py", "/hatch_build.py", "/scripts/build_macos_ffmpeg.py"]
+
+[tool.hatch.build.targets.wheel.hooks.custom]
