@@ -58,7 +58,7 @@ def build(root):
             shutil.copy2(source / name, binary)
             subprocess.run(["strip", "-x", str(binary)], check=True)
             subprocess.run(["codesign", "--force", "--sign", "-", str(binary)], check=True)
-            subprocess.run(["lipo", "-verify_arch", arch, str(binary)], check=True)
+            subprocess.run(["lipo", str(binary), "-verify_arch", arch], check=True)
             links = subprocess.check_output(["otool", "-L", str(binary)], text=True)
             for line in links.splitlines()[1:]:
                 if not line.strip().startswith(("/usr/lib/", "/System/Library/")):
