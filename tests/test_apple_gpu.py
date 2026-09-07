@@ -1,6 +1,7 @@
 import json
 import platform
 import sys
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -19,8 +20,8 @@ def test_apple_silicon_default_selects_metal(monkeypatch):
 
 @pytest.fixture
 def apple(monkeypatch):
-    monkeypatch.setattr(platform, 'system', lambda: 'Darwin')
-    monkeypatch.setattr(platform, 'machine', lambda: 'arm64')
+    monkeypatch.setattr(devices, 'platform', SimpleNamespace(
+        system=lambda: 'Darwin', machine=lambda: 'arm64'))
 
 
 @pytest.mark.parametrize('system,machine', [('Linux', 'aarch64'), ('Darwin', 'x86_64')])
