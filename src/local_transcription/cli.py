@@ -49,9 +49,35 @@ def parser():
     recheck.add_argument("--start", required=True, type=seconds)
     recheck.add_argument("--end", required=True, type=seconds)
     runtime(recheck)
-    apply = commands.add_parser("apply-review", help="Create proofread TXT/SRT from an agent's edit file.")
-    apply.add_argument("run")
-    apply.add_argument("edits")
+    apply = commands.add_parser(
+        "apply-review",
+        help="Create proofread TXT/SRT from a prepared review JSON file.",
+        description=(
+            "Apply prepared corrections to create proofread TXT/SRT. "
+            "This command does not proofread automatically. "
+            "RUN_DIR and EDITS_JSON are path placeholders; replace them with your actual paths."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  Inside your transcription folder:\n"
+            "    local-transcription apply-review . work/edits.json\n"
+            "  From another folder:\n"
+            "    local-transcription apply-review /path/to/meeting.transcription /path/to/edits.json\n"
+            "\n"
+            "Prepare edits first: copy RUN_DIR/work/review.template.json to a new JSON file,\n"
+            "then fill in corrections using word IDs from RUN_DIR/work/review-source.txt.\n"
+            "An unchanged template contains no corrections."
+        ),
+    )
+    apply.add_argument(
+        "run", metavar="RUN_DIR",
+        help="Transcription folder containing work/transcript.json; use . for the current folder.",
+    )
+    apply.add_argument(
+        "edits", metavar="EDITS_JSON",
+        help="Path to your prepared review JSON file (for example, work/edits.json).",
+    )
     model = commands.add_parser("models", help="Explicit model setup.")
     model_commands = model.add_subparsers(dest="model_command", required=True)
     install = model_commands.add_parser("install", help="Download or import SHA-256-verified models.")
