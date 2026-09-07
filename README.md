@@ -6,7 +6,7 @@ The CLI runs the media and speech models locally. The invoking agent reads the r
 
 ## Setup
 
-Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). FFmpeg and FFprobe install automatically: macOS wheels include native tools for Apple Silicon and Intel, while Linux/Windows use a binary dependency. macOS 13+ is targeted; CI tests Python 3.13 on macOS 15 (both architectures) and Linux x86-64. The default is CPU int8 inference; Apple GPU/Metal acceleration is not implemented. Allow approximately 4 GB for models plus the Python environment and working audio. Long recordings can take substantial CPU time.
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). FFmpeg and FFprobe install automatically: macOS wheels include native tools for Apple Silicon and Intel, while Linux/Windows use a binary dependency. macOS 13+ is targeted; CI tests Python 3.13 on macOS 15 (both architectures) and Linux x86-64. Apple Silicon defaults to Apple GPU recognition through a bundled whisper.cpp Metal backend and quantized large-v3 model (about 1.1 GB). Other platforms default to CPU int8 (about 4 GB of models). Speaker analysis stays on CPU. Allow additional space for the Python environment and working audio.
 
 Install the CLI from PyPI without cloning the repository:
 
@@ -28,6 +28,25 @@ local-transcription models install --from-dir /path/to/existing/models
 ```
 
 The default cache is `$XDG_CACHE_HOME/local-transcription/models`, or `~/.cache/local-transcription/models`. Override it using `--models-dir` or `LOCAL_TRANSCRIPTION_MODELS`. Setup verifies SHA-256 checksums; `doctor --verify` can verify them again. Downloads occur only through `models install`.
+
+## Apple GPU support (unreleased)
+
+The development version selects `metal` automatically on native Apple Silicon Python.
+Version 0.1.4 on PyPI is CPU/CUDA only; reinstalling that version will not enable Metal.
+After installing a wheel built from this checkout, install the additional model and verify setup:
+
+```bash
+local-transcription models install --device metal
+local-transcription doctor --device metal --verify
+local-transcription transcribe /path/to/meeting.webm --device metal
+```
+
+The Metal executable and shaders are bundled; runtime use requires no Homebrew, compiler,
+or MLX. The build targets macOS 13. Word timestamps come from whisper.cpp tokens;
+recognition and timing may differ from faster-whisper. `--batch-size` applies only to
+CPU/CUDA. GPU initialization failures stop the run, with details in `work/metal.log`.
+An explicit CPU run also requires `models install --device cpu`. Actual Mac GPU validation
+must pass before releasing these changes; Linux tests cannot establish Metal compatibility.
 
 ## Use
 
@@ -91,7 +110,7 @@ uv run --locked pytest
 uv run --locked ruff check .
 ```
 
-On macOS, a source/editable installation compiles FFmpeg during setup and requires Xcode command line tools. Normal PyPI wheel installation requires no compiler.
+On macOS, a source/editable installation compiles FFmpeg and, on Apple Silicon, whisper.cpp during setup and requires Xcode command line tools. CMake is supplied as an isolated build dependency. Normal PyPI wheel installation requires no compiler.
 
 Run the development CLI with `uv run --locked local-transcription`. See [release packaging](https://github.com/ihoru/local-transcription/blob/main/docs/releases.md) to build the installable wheel and portable skill.
 

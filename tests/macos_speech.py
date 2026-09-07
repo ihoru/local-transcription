@@ -30,6 +30,11 @@ def check(folder):
     args = parser().parse_args(["transcribe", str(video), "--language", "en",
                                "--threads", "2", "--batch-size", "1"])
     run = pipeline.transcribe(args)
+    if args.device == 'metal':
+        recognition = read_json(run / 'work/recognition.json')
+        assert recognition['device'] == 'metal'
+        assert recognition['backend'] == 'whisper.cpp'
+        assert 'using MTL0 backend' in (run / 'work/metal.log').read_text()
     data = read_json(run / "work/transcript.json")
     text = " ".join(w["text"] for w in data["words"])
     expected = set(re.findall(r"[a-z]+", spoken.lower()))
@@ -42,7 +47,7 @@ def check(folder):
     for suffix in (".txt", ".srt", ".proofread.txt", ".proofread.srt"):
         assert (run / (video.stem + suffix)).stat().st_size > 0
     assert sha256(video) == original
-    print(f"Real large-v3 CPU int8 + automatic diarization passed: {len(data['words'])} words.")
+    print(f"Real large-v3 {args.device} + automatic diarization passed: {len(data['words'])} words.")
 
 
 if __name__ == "__main__":

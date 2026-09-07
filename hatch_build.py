@@ -17,6 +17,20 @@ class CustomBuildHook(BuildHookInterface):
         builder = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(builder)
         bundle = builder.build(self.root)
+        if platform.machine() == "arm64":
+            spec = importlib.util.spec_from_file_location(
+                "build_macos_whisper", Path(self.root) / "scripts/build_macos_whisper.py"
+            )
+            metal_builder = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(metal_builder)
+            import shutil
+            # Merge into a separate bundle so the FFmpeg build cache remains unchanged.
+            combined = Path(self.root) / "build/macos-arm64-bundle"
+            if combined.exists():
+                shutil.rmtree(combined)
+            shutil.copytree(bundle, combined)
+            shutil.copytree(metal_builder.build(self.root), combined, dirs_exist_ok=True)
+            bundle = combined
         build_data["pure_python"] = False
         build_data["tag"] = f"py3-none-macosx_13_0_{platform.machine()}"
         if version == "editable":

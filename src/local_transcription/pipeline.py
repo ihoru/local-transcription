@@ -6,14 +6,16 @@ import importlib.metadata
 from . import inference, media, models
 from .common import new_run, read_json, save_json, sha256, stamp, validate_transcript
 from .render import render
+from .devices import validate_device
 
 
 def transcribe(args):
     import soundfile as sf
+    validate_device(args.device)
     root = models.model_dir(args.models_dir)
-    errors = models.check(root, diarization=not args.no_diarization)
+    errors = models.check(root, diarization=not args.no_diarization, device=args.device)
     if errors:
-        raise ValueError("\n".join(errors) + "\nRun 'local-transcription models install' first.")
+        raise ValueError("\n".join(errors) + f"\nRun 'local-transcription models install --device {args.device}' first.")
     info = media.probe(args.input, args.audio_stream)
     source = Path(info["path"])
     run = new_run(source, args.output_dir)
@@ -77,14 +79,30 @@ def recheck(args):
     data = read_json(run / "work/transcript.json")
     if not (0 <= args.start < args.end <= data["duration"]):
         raise ValueError("Recheck interval must lie within the recording.")
+    validate_device(args.device)
     root = models.model_dir(args.models_dir)
-    errors = models.check(root, diarization=False)
+    errors = models.check(root, diarization=False, device=args.device)
     if errors:
         raise ValueError("\n".join(errors))
     audio, _ = sf.read(run / "work/audio.wav", start=int(args.start * 16000),
                        stop=int(args.end * 16000), dtype="float32")
+    if args.device == "metal":
+        from .metal import recognize as recognize_metal
+        import tempfile
+        folder = run / "work/rechecks"
+        folder.mkdir(exist_ok=True)
+        diagnostics = Path(tempfile.mkdtemp(prefix="metal-", dir=folder))
+        result = recognize_metal(audio, root, diagnostics, data["language"], args.threads)
+        segments = [dict(start=args.start + s["start"], end=args.start + s["end"],
+                         text=s["text"].strip()) for s in result["segments"]]
+    else:
+        segments = recheck_cpu(audio, root, args, data["language"])
+    return save_recheck(run, args, segments)
+
+
+def recheck_cpu(audio, root, args, language):
     model = inference.load_whisper(root, args.device, args.threads)
-    generated, _ = model.transcribe(audio, language=data["language"], beam_size=5,
+    generated, _ = model.transcribe(audio, language=language, beam_size=5,
                                     vad_filter=False, word_timestamps=True,
                                     condition_on_previous_text=False)
     segments = []
@@ -93,6 +111,10 @@ def recheck(args):
             continue
         segments.append(dict(start=args.start + segment.start, end=args.start + segment.end,
                              text=segment.text.strip()))
+    return segments
+
+
+def save_recheck(run, args, segments):
     folder = run / "work/rechecks"
     folder.mkdir(exist_ok=True)
     import uuid

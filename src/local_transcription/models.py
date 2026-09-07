@@ -26,6 +26,11 @@ EMBEDDING = "wespeaker-voxceleb-resnet34.onnx"
 HASHES = {**{f"whisper-large-v3/{n}": h for n, h in WHISPER_HASHES.items()},
           SEGMENT: "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079",
           EMBEDDING: "e9848563da86f263117134dfd7ad63c92355b37de492b55e325400c9d9c39012"}
+METAL_MODEL = "whisper-metal/ggml-large-v3-q5_0.bin"
+METAL_REVISION = "5359861c739e955e79d9a303bcbc70fb988958b1"
+METAL_URL = (f"https://huggingface.co/ggerganov/whisper.cpp/resolve/{METAL_REVISION}/"
+             "ggml-large-v3-q5_0.bin")
+METAL_HASH = "d75795ecff3f83b5faa89d1900604ad8c780abd5739fae406de19f23ecd98ad1"
 ARCHIVE_HASH = "24615ee884c897d9d2ba09bb4d30da6bb1b15e685065962db5b02e76e4996488"
 
 
@@ -34,11 +39,19 @@ def model_dir(value=None):
     return Path(value or os.environ.get("LOCAL_TRANSCRIPTION_MODELS", default)).expanduser().resolve()
 
 
-def check(root, diarization=True, verify=False):
+def assets(device="cpu", diarization=True):
+    hashes = dict(HASHES)
+    if device == "metal":
+        hashes = {n: h for n, h in hashes.items() if not n.startswith("whisper-large-v3/")}
+        hashes[METAL_MODEL] = METAL_HASH
+    if not diarization:
+        hashes = {n: h for n, h in hashes.items() if n not in (SEGMENT, EMBEDDING)}
+    return hashes
+
+
+def check(root, diarization=True, verify=False, device="cpu"):
     errors = []
-    for name, digest in HASHES.items():
-        if not diarization and not name.startswith("whisper-large-v3/"):
-            continue
+    for name, digest in assets(device, diarization).items():
         path = root / name
         if not path.is_file() or path.stat().st_size == 0:
             errors.append(f"Missing model asset: {name}")
@@ -68,10 +81,10 @@ def download(url, target, digest):
     partial.replace(target)
 
 
-def install(root, source=None):
+def install(root, source=None, device="cpu"):
     root.mkdir(parents=True, exist_ok=True)
     source = Path(source).expanduser().resolve() if source else None
-    for name, digest in HASHES.items():
+    for name, digest in assets(device).items():
         target = root / name
         if target.is_file() and sha256(target) == digest:
             print(f"Verified existing {name}", flush=True)
@@ -108,5 +121,6 @@ def install(root, source=None):
                 temp.replace(target)
             archive.unlink()
         else:
-            url = EMBEDDING_URL if name == EMBEDDING else WHISPER_URL + Path(name).name
+            url = (METAL_URL if name == METAL_MODEL else
+                   EMBEDDING_URL if name == EMBEDDING else WHISPER_URL + Path(name).name)
             download(url, target, digest)

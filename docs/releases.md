@@ -43,10 +43,18 @@ Never replace existing published distribution files. Make a new version for corr
 
 The reusable `package-checks.yml` workflow builds and tests wheels on Linux, native Apple Silicon (`macos-15`), and Intel (`macos-15-intel`). macOS wheels are tagged by architecture and target macOS 13.0. The Hatch wheel hook builds FFmpeg from verified source using Apple's compiler; no Homebrew libraries enter the binaries. Build output is cached by runner and recipe hash. Source distributions include the hook and recipe so source installation can rebuild the same tools.
 
-Both normal CI and PyPI publication use this workflow. Publication waits for all three installed-wheel test jobs, then uploads the three tested wheels and the Linux-produced source distribution. A failure on either Mac blocks PyPI publication. Synthetic media tests disable system-tool discovery, check native Mach-O headers, reject non-system dynamic library dependencies, decode AAC/Opus, and exercise TXT/SRT generation and review. Native speech library imports and CPU int8 support are checked; regular push/PR tests do not download speech models. Before PyPI publication, both Mac jobs additionally install verified production models, generate public test speech with macOS say, and exercise actual large-v3 CPU int8 recognition, automatic diarization, video extraction, and both raw/review output pairs with PATH empty. No personal recordings enter CI.
+Both normal CI and PyPI publication use this workflow. Publication waits for all three installed-wheel test jobs, then uploads the three tested wheels and the Linux-produced source distribution. A failure on either Mac blocks PyPI publication. Synthetic media tests disable system-tool discovery, check native Mach-O headers, reject non-system dynamic library dependencies, decode AAC/Opus, and exercise TXT/SRT generation and review. Native speech library imports and CPU int8 support are checked; regular push/PR tests do not download speech models. Before PyPI publication, both Mac jobs additionally install verified production models, generate public test speech with macOS say, and exercise actual large-v3 recognition (Metal on Apple Silicon, CPU int8 on Intel), automatic diarization, video extraction, and both raw/review output pairs with PATH empty. No personal recordings enter CI.
 
 For GitHub release assets, collect all three wheels from the successful workflow artifacts and the Linux source archive, constraints, and skill ZIP. Regenerate a single `SHA256SUMS` covering the combined assets. All three wheels must belong to the same source commit. Do not upload the individual jobs' partial checksum files as the combined release checksum.
 
 macOS pins ONNX Runtime 1.23.2, which provides both arm64 and x86_64 wheels for macOS 13+. Newer releases dropped Intel wheels and raised the Apple Silicon deployment target. Linux/Windows retain ONNX Runtime 1.29.0.
 
 Before creating a release, run `gh workflow run checks.yml --repo ihoru/local-transcription --ref main -f speech=true` and wait for success to exercise clean model setup and real speech on both Macs without publishing. The 0.1.3 GitHub candidate was not published to PyPI: this gate found an incorrect WeSpeaker asset URL that cached local models had hidden. Version 0.1.4 repairs the URL while preserving the exact model checksum.
+
+The development Apple Silicon wheel also builds pinned whisper.cpp 1.9.3 with static
+libraries, embedded Metal shaders, and a macOS 13 deployment target. CMake is a build
+requirement only. The release speech check requires confirmed Metal use on arm64;
+normal tests check executable startup and system-only dynamic dependencies. macOS
+media/speaker dependencies are pinned to PyAV 15.1.0 and Sherpa-ONNX 1.13.3, matching
+the supplied macOS 13 diagnostic's known-loadable versions. A native Mac run is still
+required to verify this new backend; a deployment target alone does not prove compatibility.

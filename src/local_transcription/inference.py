@@ -6,9 +6,13 @@ import time
 
 from .common import read_json, save_json
 from .models import EMBEDDING, SEGMENT
+from .devices import validate_device
 
 
 def load_whisper(root, device, threads):
+    validate_device(device)
+    if device == "metal":
+        raise ValueError("Use the Metal recognition entry point for Apple GPU inference.")
     os.environ["HF_HUB_OFFLINE"] = "1"
     os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
     import onnxruntime
@@ -20,6 +24,10 @@ def load_whisper(root, device, threads):
 
 
 def recognize(audio, root, work, language=None, device="cpu", threads=8, batch_size=4):
+    validate_device(device)
+    if device == "metal":
+        from .metal import recognize as recognize_metal
+        return recognize_metal(audio, root, work, language, threads)
     from faster_whisper import BatchedInferencePipeline
     model = load_whisper(root, device, threads)
     pipeline = BatchedInferencePipeline(model)

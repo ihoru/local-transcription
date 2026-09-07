@@ -4,9 +4,11 @@ import argparse
 import json
 from pathlib import Path
 import sys
+import subprocess
 
 from . import __version__, media, models, pipeline, review
 from .common import seconds
+from .devices import DEVICES, default_device, validate_device
 
 
 def positive(value):
@@ -18,7 +20,7 @@ def positive(value):
 
 def runtime(parser):
     parser.add_argument("--models-dir", help="Model directory (or LOCAL_TRANSCRIPTION_MODELS).")
-    parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    parser.add_argument("--device", choices=DEVICES, default=default_device())
     parser.add_argument("--threads", type=positive, default=8)
 
 
@@ -54,9 +56,11 @@ def parser():
     model_commands = model.add_subparsers(dest="model_command", required=True)
     install = model_commands.add_parser("install", help="Download or import SHA-256-verified models.")
     install.add_argument("--models-dir")
+    install.add_argument("--device", choices=DEVICES, default=default_device())
     install.add_argument("--from-dir", help="Reuse verified assets from an existing installation.")
     doctor = commands.add_parser("doctor", help="Check local tools, model assets, and hardware.")
     doctor.add_argument("--models-dir")
+    doctor.add_argument("--device", choices=DEVICES, default=default_device())
     doctor.add_argument("--verify", action="store_true", help="Hash all installed model files.")
     return root
 
@@ -65,7 +69,16 @@ def doctor(args):
     import ctranslate2
     import soundfile as sf
     root = models.model_dir(args.models_dir)
-    errors = models.check(root, verify=args.verify)
+    device = validate_device(args.device)
+    errors = models.check(root, verify=args.verify, device=device)
+    metal_runtime = None
+    if device == "metal":
+        from .metal import executable
+        try:
+            metal_runtime = str(executable())
+            subprocess.run([metal_runtime, "--help"], check=True, capture_output=True, timeout=30)
+        except (ValueError, OSError, subprocess.SubprocessError) as exc:
+            errors.append(f"Metal runtime cannot load: {exc}")
     media_tools = {}
     for tool in ("ffmpeg", "ffprobe"):
         try:
@@ -84,7 +97,9 @@ def doctor(args):
         gpu_count = 0
     print(json.dumps(dict(models_dir=str(root), ffmpeg=media_tools["ffmpeg"],
                          ffprobe=media_tools["ffprobe"], cuda_devices=gpu_count,
-                         default_device="cpu", soundfile_version=sf.__version__, errors=errors), indent=2))
+                         default_device=default_device(), selected_device=device,
+                         recognition_backend="whisper.cpp" if device == "metal" else "faster-whisper",
+                         metal_runtime=metal_runtime, soundfile_version=sf.__version__, errors=errors), indent=2))
     return 1 if errors else 0
 
 
@@ -107,7 +122,8 @@ def main(argv=None):
             for path in review.apply_review(Path(args.run).expanduser().resolve(), args.edits):
                 print(path)
         elif args.command == "models":
-            models.install(models.model_dir(args.models_dir), args.from_dir)
+            models.install(models.model_dir(args.models_dir), args.from_dir,
+                           device=validate_device(args.device))
         else:
             return doctor(args)
     except (ValueError, OSError, RuntimeError, KeyError, ImportError) as exc:

@@ -1,6 +1,6 @@
 # Install or locate the CLI
 
-Install `local-transcription` from PyPI without a source checkout. Python 3.11+ and uv are required; FFmpeg/FFprobe install automatically with the CLI on supported platforms; CI tests Python 3.13 on Linux x86-64 and macOS 15 on Apple Silicon and Intel. macOS wheels target macOS 13+ and need neither Homebrew nor Rosetta; inference uses CPU int8, without Apple GPU acceleration. The package provides a console command in an isolated Python environment, not a standalone native binary. Allow about 4 GB for model files plus the environment and working audio.
+Install `local-transcription` from PyPI without a source checkout. Python 3.11+ and uv are required; FFmpeg/FFprobe install automatically with the CLI on supported platforms; CI tests Python 3.13 on Linux x86-64 and macOS 15 on Apple Silicon and Intel. macOS wheels target macOS 13+ and need neither Homebrew nor Rosetta; the published 0.1.4 uses CPU int8, without Apple GPU acceleration. The development Apple Silicon wheel adds bundled Metal recognition; after installing that wheel, use `models install --device metal` and `doctor --device metal --verify`. The package provides a console command in an isolated Python environment, not a standalone native binary. Allow about 4 GB for model files plus the environment and working audio.
 
 ## Existing installation
 

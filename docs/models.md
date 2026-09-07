@@ -31,3 +31,14 @@ On Linux and Windows, the pinned [ffmpeg-binaries-compat 1.1.0](https://pypi.org
 macOS wheels bundle separate native FFmpeg 9.0.1 executables built from the [official source archive](https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz), pinned to SHA-256 `cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635`. These builds disable external library autodetection, GPL, nonfree, version3, and networking. They statically link FFmpeg libraries and depend only on macOS system libraries. The resulting FFmpeg executables use LGPL-2.1-or-later. Each Mac wheel carries the full corresponding unmodified source archive, LGPL notice, build options, and rebuild script in `local_transcription/_bin/`. The application's Python code invokes these tools as separate processes. See `scripts/build_macos_ffmpeg.py` for the pinned build recipe.
 
 The WeSpeaker download is `wespeaker_en_voxceleb_resnet34_LM.onnx` in the upstream speaker model release. It is stored locally as `wespeaker-voxceleb-resnet34.onnx` for compatibility with existing installations; its SHA-256 remains `e9848563da86f263117134dfd7ad63c92355b37de492b55e325400c9d9c39012`.
+
+## Apple Metal recognition (development)
+
+Apple Silicon uses [whisper.cpp](https://github.com/ggml-org/whisper.cpp/tree/v1.9.3)
+1.9.3 (MIT) and `ggerganov/whisper.cpp` large-v3 q5_0 (MIT), approximately 1.1 GB.
+The source archive and model SHA-256 digests are pinned in the build recipe and model
+registry. The model revision is `5359861c739e955e79d9a303bcbc70fb988958b1`;
+the file is `ggml-large-v3-q5_0.bin`. It installs under `whisper-metal/` and does not
+replace faster-whisper weights. Only the selected recognition backend's model plus
+speaker assets are installed/verified. Quantization and decoder differences may
+change recognition quality; no equivalence claim is made.

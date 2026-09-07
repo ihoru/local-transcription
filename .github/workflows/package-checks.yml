@@ -33,6 +33,11 @@ jobs:
         with:
           path: build/ffmpeg-macos-*
           key: native-ffmpeg-${{ matrix.os }}-${{ hashFiles('scripts/build_macos_ffmpeg.py') }}
+      - uses: actions/cache@v4
+        if: matrix.arch == 'arm64'
+        with:
+          path: build/whisper-macos-arm64
+          key: native-whisper-${{ matrix.os }}-${{ hashFiles('scripts/build_macos_whisper.py') }}
       - run: uv sync --locked --no-install-project --no-build
       - run: python scripts/build_release.py dist/release
       - run: uvx --from twine==7.0.0 twine check --strict dist/release/*.whl dist/release/*.tar.gz

@@ -16,7 +16,7 @@ local media -> FFprobe -> optional audio extraction -> mono PCM
 
 `models install` is the only package command that requests model downloads. It verifies pinned SHA-256 hashes and can reuse already downloaded assets. Dependency installation is a separate `uv sync` operation.
 
-Whisper is loaded by absolute local path with `local_files_only=True`; Hugging Face offline mode and telemetry disabling are set before model loading. Speaker models load from explicit ONNX paths. No audio is uploaded. The invoking agent reads transcript text for proofreading and optional summarization; that text may be processed by the agent's provider. The package does not contain a hosted proofreading integration or a local generative language model.
+On Apple Silicon, the packaged whisper.cpp executable receives a local PCM file and absolute model path; full JSON tokens are converted to canonical timed words. Its native diagnostics must confirm Metal selection; failed GPU initialization is rejected. Metal shaders are embedded and no model download occurs during inference. Elsewhere, Whisper is loaded by absolute local path with `local_files_only=True`; Hugging Face offline mode and telemetry disabling are set before model loading. Speaker models load from explicit ONNX paths. No audio is uploaded. The invoking agent reads transcript text for proofreading and optional summarization; that text may be processed by the agent's provider. The package does not contain a hosted proofreading integration or a local generative language model.
 
 ## Canonical data
 

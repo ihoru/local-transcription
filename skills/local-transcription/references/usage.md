@@ -33,8 +33,8 @@ Each array entry is one distinct speaker. Intervals use seconds in the full reco
 
 ## Runtime and recovery
 
-- CPU int8 is the default. `--threads` defaults to 8 and `--batch-size` to 4. Use lower values if memory is constrained.
-- `--device cuda` explicitly requests GPU recognition with float16. It requires a compatible CTranslate2/CUDA runtime. Speaker analysis stays on CPU. An unavailable GPU fails visibly; it does not silently change the requested hardware.
+- In the development version, native Apple Silicon defaults to `--device metal` using bundled whisper.cpp and large-v3 q5_0. Other platforms default to CPU int8. `--threads` defaults to 8; `--batch-size` (default 4) affects only CPU/CUDA. The published 0.1.4 release does not support Metal. Install the matching model with `models install --device metal` or `--device cpu`.
+- `--device cuda` explicitly requests NVIDIA GPU recognition with float16. It requires a compatible CTranslate2/CUDA runtime. Speaker analysis stays on CPU. An unavailable GPU fails visibly; it does not silently change the requested hardware.
 - `work/run.json` records `processing`, `failed`, `awaiting_review`, or `reviewed`. Interrupted recognition checkpoints remain in `work/recognition.partial.json`. Automatic resume is not implemented; a retry creates a new run and preserves the failed one.
 - `recheck` accepts seconds, `MM:SS`, or `HH:MM:SS`, and saves a uniquely named result under `work/rechecks/`. It does not modify recognized words or subtitle files.
 - Silence yields empty speech outputs rather than fabricated transcript text. Check the recording if speech was expected.

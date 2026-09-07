@@ -58,3 +58,20 @@ The optional `tests/manual_speech.py` checker accepts a local mono 16 kHz WAV, m
 The macOS binary dependency in 0.1.2 was mislabeled upstream: its universal2 wheel contained x86_64-only executables. Version 0.1.4 replaces it on macOS with native arm64 and x86_64 wheels built from pinned FFmpeg source. CI now exercises installed wheels on both native Mac architectures and Linux, including an empty-PATH media round trip, AAC/Opus decoding, Mach-O architecture and dynamic-link checks, real executable startup in doctor, CPU int8 availability, and Sherpa native imports. Before publication, both Mac jobs also run large-v3 recognition and automatic diarization on a short generated recording and produce all four transcript files. The full recording and natural-dialogue speaker-quality evaluations above remain Linux evaluations; short generated fixtures do not establish Mac transcription quality or speed on arbitrary recordings.
 
 Fresh model setup in the 0.1.3 release candidate found a 404 in the WeSpeaker download URL. The corrected upstream LM asset in 0.1.4 was downloaded and matched the original trusted checksum byte for byte, so existing model files remain reusable. The failed candidate was withheld from PyPI.
+
+## Apple GPU change (2026-09-07, unreleased)
+
+The supplied M2/macOS 13.7.8 diagnostic reproduces the 0.1.4 CPU-only selection.
+A regression test first failed with `cpu` where `metal` was required. The development
+backend now selects Metal on native Apple Silicon, uses a separately verified large-v3
+q5_0 model, and rejects native GPU initialization fallback. Tests exercise the actual
+subprocess boundary, word conversion, full transcription handoff, rechecks, device
+selection, setup checksums, and runtime errors. A compiled whisper.cpp 1.9.3 Linux
+binary recognized the upstream JFK sample with a tiny test model; its real full JSON
+converted into 22 valid timed words. This checks the native output contract only.
+
+No Apple GPU or macOS 13 machine was available in this workspace. The Metal build,
+shader compilation on Ventura, large-v3 memory use on the 8 GB M2, and recognition
+speed/quality remain unverified. Mac release validation now requires confirmed MTL0
+backend selection on Apple Silicon and generated-speech recognition. Normal Mac CI
+checks the packaged executable and dynamic dependencies without loading speech weights.
