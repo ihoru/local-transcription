@@ -36,14 +36,20 @@ def recognize(audio, root, work, language=None, device="cpu", threads=8, batch_s
         condition_on_previous_text=False)
     segments = []
     report = -30
+    duration = len(audio) / 16000
     started = time.monotonic()
     for segment in generated:
         item = asdict(segment)
         segments.append(item)
         if item["end"] - report >= 30:
             report = item["end"]
-            print(f"Transcribed {report / 60:.1f}/{len(audio) / 16000 / 60:.1f} min "
-                  f"({(time.monotonic() - started) / 60:.1f} min elapsed)", flush=True)
+            elapsed = time.monotonic() - started
+            done = min(max(report, 0), duration)
+            percent = done / duration * 100 if duration > 0 else 0
+            remaining = (f"~{elapsed * (duration - done) / done / 60:.1f} min remaining"
+                         if done > 0 else "remaining time unknown")
+            print(f"Transcribed {done / 60:.1f}/{duration / 60:.1f} min ({percent:.1f}%) "
+                  f"({elapsed / 60:.1f} min elapsed, {remaining})", flush=True)
             save_json(work / "recognition.partial.json", dict(segments=segments))
     # A separate short decode can recover speech trimmed at the beginning by VAD.
     first = next((w for s in segments for w in s["words"]), None)
