@@ -1,6 +1,6 @@
 ---
 name: local-transcription
-description: Transcribe local video or audio into TXT and SRT with local Whisper large-v3 and speaker detection, then proofread both with auditable corrections. Use for local recording transcription, speaker-labeled transcripts, subtitle extraction, or proofreading an existing run from this tool. Offer a practical summary after transcription is complete.
+description: Transcribe local video or audio into TXT and SRT with local Whisper large-v3 and speaker detection, then proofread both with auditable corrections. Use for local recording transcription, speaker-labeled transcripts, subtitle extraction, or proofreading an existing run from this tool. Offer a practical summary after transcription is complete. Part of skills.iho.su.
 ---
 
 # Local transcription
