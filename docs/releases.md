@@ -51,7 +51,7 @@ macOS pins ONNX Runtime 1.23.2, which provides both arm64 and x86_64 wheels for 
 
 Before creating a release, run `gh workflow run checks.yml --repo ihoru/local-transcription --ref main -f speech=true` and wait for success to exercise clean model setup and real speech on both Macs without publishing. The 0.1.3 GitHub candidate was not published to PyPI: this gate found an incorrect WeSpeaker asset URL that cached local models had hidden. Version 0.1.4 repairs the URL while preserving the exact model checksum.
 
-The development Apple Silicon wheel also builds pinned whisper.cpp 1.9.3 with static
+The 0.1.5 Apple Silicon wheel also builds pinned whisper.cpp 1.9.3 with static
 libraries, embedded Metal shaders, and a macOS 13 deployment target. CMake is a build
 requirement only. The release speech check requires confirmed Metal use on arm64;
 normal tests check executable startup and system-only dynamic dependencies. macOS

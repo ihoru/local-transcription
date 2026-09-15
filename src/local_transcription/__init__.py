@@ -1,3 +1,3 @@
 """Local audio processing with explicit, auditable text review."""
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"

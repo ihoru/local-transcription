@@ -11,7 +11,7 @@ Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). FFmpeg and FFprobe i
 Install the CLI from PyPI without cloning the repository:
 
 ```bash
-uv tool install --python 3.13 local-transcription==0.1.4
+uv tool install --python 3.13 local-transcription==0.1.5
 uv tool update-shell
 local-transcription models install
 local-transcription doctor --verify
@@ -29,11 +29,10 @@ local-transcription models install --from-dir /path/to/existing/models
 
 The default cache is `$XDG_CACHE_HOME/local-transcription/models`, or `~/.cache/local-transcription/models`. Override it using `--models-dir` or `LOCAL_TRANSCRIPTION_MODELS`. Setup verifies SHA-256 checksums; `doctor --verify` can verify them again. Downloads occur only through `models install`.
 
-## Apple GPU support (unreleased)
+## Apple GPU support (0.1.5)
 
-The development version selects `metal` automatically on native Apple Silicon Python.
-Version 0.1.4 on PyPI is CPU/CUDA only; reinstalling that version will not enable Metal.
-After installing a wheel built from this checkout, install the additional model and verify setup:
+Version 0.1.5 selects `metal` automatically on native Apple Silicon Python.
+After installation, install the additional model and verify setup:
 
 ```bash
 local-transcription models install --device metal
