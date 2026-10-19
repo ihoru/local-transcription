@@ -3,7 +3,13 @@ from types import SimpleNamespace
 
 import pytest
 
-from local_transcription import cli, inference, models
+from local_transcription import cli, devices, inference, models
+
+
+@pytest.fixture(autouse=True)
+def linux_cuda_platform(monkeypatch):
+    monkeypatch.setattr(devices, 'platform', SimpleNamespace(
+        system=lambda: 'Linux', machine=lambda: 'x86_64'))
 
 
 @pytest.mark.parametrize('failure', ['load', 'encode'])
