@@ -121,6 +121,16 @@ def doctor(args):
         gpu_count = ctranslate2.get_cuda_device_count()
     except RuntimeError:
         gpu_count = 0
+    if device == "cuda" and not errors:
+        try:
+            import numpy as np
+            from .inference import load_whisper
+            model = load_whisper(root, "cuda", 2)
+            model.encode(np.zeros((128, 3000), dtype=np.float32))
+        except (ImportError, OSError, RuntimeError, ValueError) as exc:
+            errors.append(f"CUDA inference cannot run: {exc}. "
+                          "Install the CUDA extra: uv sync --extra cuda (checkout), or "
+                          "configure CUDA 12 cuBLAS via LD_LIBRARY_PATH before launching Python.")
     print(json.dumps(dict(models_dir=str(root), ffmpeg=media_tools["ffmpeg"],
                          ffprobe=media_tools["ffprobe"], cuda_devices=gpu_count,
                          default_device=default_device(), selected_device=device,

@@ -17,6 +17,9 @@ def load_whisper(root, device, threads):
     os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
     import onnxruntime
     onnxruntime.disable_telemetry_events()
+    if device == "cuda":
+        from .cuda import prepare_runtime
+        prepare_runtime()
     from faster_whisper import WhisperModel
     return WhisperModel(str(root / "whisper-large-v3"), device=device,
                         compute_type="int8" if device == "cpu" else "float16",

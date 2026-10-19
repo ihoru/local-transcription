@@ -32,6 +32,9 @@ dependencies = [
   "numpy>=2.2,<3",
 ]
 
+[project.optional-dependencies]
+cuda = ["nvidia-cublas-cu12==12.8.4.1; sys_platform == 'linux'"]
+
 [project.urls]
 Homepage = "https://github.com/ihoru/local-transcription"
 Repository = "https://github.com/ihoru/local-transcription"

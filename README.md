@@ -47,6 +47,23 @@ CPU/CUDA. GPU initialization failures stop the run, with details in `work/metal.
 An explicit CPU run also requires `models install --device cpu`. Actual Mac GPU validation
 must pass before releasing these changes; Linux tests cannot establish Metal compatibility.
 
+## NVIDIA GPU support on Linux
+
+The pinned CTranslate2 runtime uses CUDA 12 cuBLAS. Install the optional runtime in
+its Python environment; an NVIDIA driver is also required:
+
+```bash
+# Development checkout
+uv sync --locked --extra cuda
+uv run --locked --extra cuda local-transcription doctor --device cuda
+uv run --locked --extra cuda local-transcription transcribe /path/to/recording.m4a --device cuda
+```
+
+The CLI loads the optional cuBLAS libraries directly, so no `LD_LIBRARY_PATH` edit
+is needed. Existing system CUDA installations also remain supported. CUDA diagnostics
+load the model and execute its encoder: detecting a GPU alone does not establish
+that the inference libraries work. `doctor --verify` additionally hashes model files.
+
 ## Use
 
 ```bash
